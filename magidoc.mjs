@@ -1,3 +1,5 @@
+import path from 'path'
+
 export default {
     introspection: {
       type: 'sdl',
@@ -5,10 +7,11 @@ export default {
     },
     website: {
       template: 'carbon-multi-page',
-      staticAssets: 'assets',
+      staticAssets: path.join(__dirname, 'assets'),
       options: {
         appTitle: 'Accurate Api Documentation',
         appLogo: '/Accurate.png',
+        siteRoot: '/accuratess',
         pages: [{
             title: 'Accurate Api',
             content: `
