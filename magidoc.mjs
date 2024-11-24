@@ -27,17 +27,19 @@ export default {
 					title: "Callback url",
 					content: `
             Webhook callback url to listen any update status occurred to shipment via post request
-            -- data returned from callback
-              'shipmentId' => shipment id,
-              'typeCode' => type listen for update,
-              'shipmentStatusCode' => shipment status,
-              'returnTypeCode' => if shipment returned, type of return,
-              'deliveryTypeCode' => if shipment delivered, type of delivery,
-              'deliveredAmount' => amount of delivered,
-              'collectedFees' => amount of collected fees,
-              'deliveryDate' => delivery date for shipment,
-              'cancellationReasonId' => if shipment cancelled, the reason of cancellation,
-              'notes' => notes for shipment,
+            -- data returned from callback as a json
+            {
+              "shipmentId": shipment id,
+              "typeCode": type listen for update,
+              "shipmentStatusCode": shipment status,
+              "returnTypeCode": if shipment returned, type of return,
+              "deliveryTypeCode": if shipment delivered, type of delivery,
+              "deliveredAmount": amount of delivered,
+              "collectedFees": amount of collected fees,
+              "deliveryDate": delivery date for shipment,
+              "cancellationReasonId": if shipment cancelled, the reason of cancellation,
+              "notes": notes for shipment
+            }
             `,
 				},
 			],
