@@ -124,7 +124,6 @@ type Query {
 	): CustomerRequestPaginator!
 	sumShipments(input: ListShipmentsFilterInput): ShipmentsSum
 	calculateShipmentFees(input: CalculateShipmentFeesInput!): ShipmentFees!
-	trackShipmentUniversally(code: String!): Shipment
 }
 scalar DateTime
 
