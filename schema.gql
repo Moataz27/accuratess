@@ -1,12 +1,14 @@
 type Mutation {
 	login(input: LoginInput!): UserWithToken!
 	saveShipment(input: ShipmentInput!): Shipment
-	updateShipmentStatus(input: UpdateShipmentStatusInput!): Shipment!
-	savePickup(input: PickupInput!): Pickup!
 }
 
 type Query {
 	listZonesDropdown(input: ListZonesFilterInput): [DropDownEntry]
+	listCountriesDropdown: [DropDownEntry]!
+	listPaymentTypesDropdown(
+		input: ListPaymentTypesDropdownInput
+	): [DropDownEntry]
 	shipment(id: Int, code: String): Shipment
 	listShipments(
 		input: ListShipmentsFilterInput
@@ -21,109 +23,22 @@ type Query {
 		"""
 		page: Int
 	): ShipmentPaginator!
-	listPickups(
-		input: ListPickupsFilterInput
-
+	listLookupEntriesDropdown(
 		"""
-		Limits number of fetched items. Maximum allowed value: 100.
+		Code in ListLookupEntriesFilterInput for Dropdown used for Save Shipment
+		SHP_PRICE_TYPE 		=> for list price type,
+		SHP_OPEN_PACKAGE 	=> for list package openable
 		"""
-		first: Int! = 10
-
-		"""
-		The offset from which items are returned.
-		"""
-		page: Int
-	): PickupPaginator!
-	pickup(id: Int!): Pickup
-	listShipmentsForPickup(
-		id: Int!
-		filter: ListShipmentsFilterInput
-
-		"""
-		Limits number of fetched items. Maximum allowed value: 100.
-		"""
-		first: Int! = 10
-
-		"""
-		The offset from which items are returned.
-		"""
-		page: Int
-	): ShipmentForPickupPaginator!
-	listPaymentTypesDropdown(
-		input: ListPaymentTypesDropdownInput
+		input: ListLookupEntriesFilterInput!
 	): [DropDownEntry]
 	listShippingServicesDropdown(
 		input: ListShippingServicesFilterInput
 	): [DropDownEntry]!
-	customer(id: Int!): Customer
-	listNotifications(
-		"""
-		Limits number of fetched items. Maximum allowed value: 100.
-		"""
-		first: Int! = 10
-
-		"""
-		The offset from which items are returned.
-		"""
-		page: Int
-	): NotificationPaginator!
-	listMessages(
-		shipmentId: Int
-		asConversation: Boolean
-		receivedOnly: Boolean
-
-		"""
-		Limits number of fetched items. Maximum allowed value: 100.
-		"""
-		first: Int! = 10
-
-		"""
-		The offset from which items are returned.
-		"""
-		page: Int
-	): ShipmentMessagePaginator!
-	listPayments(
-		input: ListPaymentFilterInput!
-
-		"""
-		Limits number of fetched items. Maximum allowed value: 100.
-		"""
-		first: Int! = 10
-
-		"""
-		The offset from which items are returned.
-		"""
-		page: Int
-	): PaymentPaginator!
-	sumPayments(input: ListPaymentFilterInput): PaymentSum
-	listTickets(
-		input: ListTicketsFilterInput
-
-		"""
-		Limits number of fetched items. Maximum allowed value: 100.
-		"""
-		first: Int! = 10
-
-		"""
-		The offset from which items are returned.
-		"""
-		page: Int
-	): TicketPaginator!
-	listCustomerRequests(
-		input: ListCustomerRequestFilterInput!
-
-		"""
-		Limits number of fetched items. Maximum allowed value: 100.
-		"""
-		first: Int! = 10
-
-		"""
-		The offset from which items are returned.
-		"""
-		page: Int
-	): CustomerRequestPaginator!
-	sumShipments(input: ListShipmentsFilterInput): ShipmentsSum
 	calculateShipmentFees(input: CalculateShipmentFeesInput!): ShipmentFees!
+	listShipmentTypesDropdown(
+		serviceId: Int
+		mobileActive: Boolean
+	): [DropDownEntry]
 }
 scalar DateTime
 
@@ -144,6 +59,10 @@ type ShipmentFees {
 	total: Float!
 }
 
+input ListPaymentTypesDropdownInput {
+	customerId: Int
+}
+
 input CalculateShipmentFeesInput {
 	customerTypeCode: CustomerTypeCode
 	serviceId: Int!
@@ -157,493 +76,6 @@ input CalculateShipmentFeesInput {
 	price: Float!
 	priceTypeCode: ShipmentPriceTypeCode
 	paymentTypeCode: ShipmentPaymentTypeCode
-	deliveryFees: Float
-	extraWeightFees: Float
-	collectionFees: Float
-	returnFees: Float
-}
-
-"""
-Payment type code
-"""
-enum PaymentTypeCode {
-	"""
-	Custm
-	"""
-	CUSTM
-
-	"""
-	Dlvby
-	"""
-	DLVBY
-}
-
-type ShipmentsSum {
-	price: Float
-	allDueFees: Float
-	deliveredAmount: Float
-	collectedFees: Float
-	pendingCollectionAmount: Float
-	collectedAmount: Float
-	amount: Float
-	totalAmount: Float
-	customerDue: Float
-	customerDueCredit: Float
-	customerDueDebit: Float
-	returningDueFees: Float
-	deliveryCommission: Float
-}
-
-type CustomerRequest {
-	id: Int!
-	date: DateTime
-	payment: Payment
-	customer: Customer!
-	branch: Branch!
-	payeeName: String!
-	type: LookupEntry!
-	status: LookupEntry!
-	deliveryType: LookupEntry!
-	notes: String
-	editable: Boolean!
-	deletable: Boolean!
-	createdAt: DateTime!
-	createdBy: User!
-	updatedBy: User
-}
-"""
-A paginated list of CustomerRequest items.
-"""
-type CustomerRequestPaginator {
-	"""
-	Pagination information about the list of items.
-	"""
-	paginatorInfo: PaginatorInfo!
-
-	"""
-	A list of CustomerRequest items.
-	"""
-	data: [CustomerRequest!]!
-}
-
-input ListCustomerRequestFilterInput {
-	payeeName: String
-	statusCode: CustomerRequestStatusCode
-	deliveryTypeCode: CustomerRequestDeliveryTypeCode
-	typeCode: CustomerRequestTypeCode!
-	deliveryAgentId: Int
-	branchId: Int
-	customerId: Int
-	manifestId: Int
-	paymentId: Int
-	fromDate: Date
-	toDate: Date
-	new: Boolean
-}
-
-"""
-Customer request type code
-"""
-enum CustomerRequestTypeCode {
-	"""
-	Pmnt
-	"""
-	PMNT
-
-	"""
-	Rtrn
-	"""
-	RTRN
-
-	"""
-	Mtrl
-	"""
-	MTRL
-}
-
-"""
-Customer request delivery type code
-"""
-enum CustomerRequestDeliveryTypeCode {
-	"""
-	Office
-	"""
-	OFFICE
-
-	"""
-	Deliveryagent
-	"""
-	DELIVERYAGENT
-
-	"""
-	Bnk
-	"""
-	BNK
-
-	"""
-	Wlt
-	"""
-	WLT
-}
-
-"""
-Customer request status code
-"""
-enum CustomerRequestStatusCode {
-	"""
-	New
-	"""
-	NEW
-
-	"""
-	Inprogress
-	"""
-	INPROGRESS
-
-	"""
-	Delivered
-	"""
-	DELIVERED
-
-	"""
-	Cancelled
-	"""
-	CANCELLED
-
-	"""
-	Finished
-	"""
-	FINISHED
-}
-
-"""
-A paginated list of Ticket items.
-"""
-type TicketPaginator {
-	"""
-	Pagination information about the list of items.
-	"""
-	paginatorInfo: PaginatorInfo!
-
-	"""
-	A list of Ticket items.
-	"""
-	data: [Ticket!]!
-}
-
-type Ticket {
-	id: Int!
-	code: String!
-	title: String!
-	body: String!
-	customer: Customer!
-	status: LookupEntry!
-	assignee: User
-	images: [Image]
-	createdAt: DateTime!
-	updatedAt: DateTime
-	createdBy: User!
-	updatedBy: User
-	history: [Ticket!]!
-	replies: [TicketReply!]!
-}
-
-type TicketReply {
-	id: Int!
-	body: String
-	ticket: Ticket!
-	createdBy: User!
-	images: [Image]
-	createdAt: DateTime!
-}
-
-input ListTicketsFilterInput {
-	code: String
-	statusCode: TicketStatusCode
-	title: String
-	assigneeId: Int
-	customerId: Int
-	categoryId: Int
-	fromDate: Date
-	toDate: Date
-}
-
-"""
-Ticket status code
-"""
-enum TicketStatusCode {
-	"""
-	New
-	"""
-	NEW
-
-	"""
-	Inprogress
-	"""
-	INPROGRESS
-
-	"""
-	Closed
-	"""
-	CLOSED
-
-	"""
-	Reopend
-	"""
-	REOPEND
-}
-
-type PaymentSum {
-	paymentAmount: Float!
-	dueFees: Float!
-	entryCount: Int!
-	shipmentCount: Int!
-	pickupCount: Int!
-	conciergeRequestCount: Int!
-}
-
-type Payment {
-	id: Int!
-	code: String!
-	type: LookupEntry!
-	branch: Branch!
-	transactionType: TransactionType!
-	customer: Customer
-	date: DateTime!
-	approved: Boolean!
-	glApproved: Boolean!
-	notes: String
-	paymentAmount: Float
-	createdBy: User!
-	updatedBy: User
-	deliveredAmount: Float
-	weight: Float
-	piecesCount: Float
-	collectedFees: Float
-	images: [Image]
-}
-
-"""
-A paginated list of Payment items.
-"""
-type PaymentPaginator {
-	"""
-	Pagination information about the list of items.
-	"""
-	paginatorInfo: PaginatorInfo!
-
-	"""
-	A list of Payment items.
-	"""
-	data: [Payment!]!
-}
-
-"""
-Transaction type code
-"""
-enum TransactionTypeCode {
-	"""
-	Bmr
-	"""
-	BMR
-
-	"""
-	Bmt
-	"""
-	BMT
-
-	"""
-	Cshc
-	"""
-	CSHC
-
-	"""
-	Cshp
-	"""
-	CSHP
-
-	"""
-	Dex
-	"""
-	DEX
-
-	"""
-	Dtr
-	"""
-	DTR
-
-	"""
-	Htr
-	"""
-	HTR
-
-	"""
-	Otd
-	"""
-	OTD
-
-	"""
-	Otr
-	"""
-	OTR
-
-	"""
-	Pkd
-	"""
-	PKD
-
-	"""
-	Pkh
-	"""
-	PKH
-
-	"""
-	Pkm
-	"""
-	PKM
-
-	"""
-	Pkr
-	"""
-	PKR
-
-	"""
-	Rits
-	"""
-	RITS
-
-	"""
-	Rjct
-	"""
-	RJCT
-
-	"""
-	Rtrn
-	"""
-	RTRN
-
-	"""
-	Rts
-	"""
-	RTS
-
-	"""
-	Shpinv
-	"""
-	SHPINV
-
-	"""
-	Prp
-	"""
-	PRP
-
-	"""
-	Prpd
-	"""
-	PRPD
-
-	"""
-	Std
-	"""
-	STD
-
-	"""
-	Rcv
-	"""
-	RCV
-
-	"""
-	Pkbk
-	"""
-	PKBK
-
-	"""
-	Prqst
-	"""
-	PRQST
-
-	"""
-	Padd
-	"""
-	PADD
-
-	"""
-	Prtrn
-	"""
-	PRTRN
-
-	"""
-	Pissue
-	"""
-	PISSUE
-
-	"""
-	Prts
-	"""
-	PRTS
-
-	"""
-	Pmbt
-	"""
-	PMBT
-
-	"""
-	Pmbr
-	"""
-	PMBR
-
-	"""
-	Top
-	"""
-	TOP
-
-	"""
-	Wdr
-	"""
-	WDR
-}
-
-input ListPaymentFilterInput {
-	typeCode: PaymentTypeCode
-	code: String
-	transactionTypeCode: TransactionTypeCode
-	customerId: Int
-	fromZoneId: Int
-	fromSubzoneId: Int
-	toZoneId: Int
-	toSubzoneId: Int
-	branchId: Int
-	fromDate: Date
-	toDate: Date
-	approved: Boolean
-	glApproved: Boolean
-	safeId: Int
-	deliveryAgentId: Int
-}
-
-"""
-A paginated list of ShipmentMessage items.
-"""
-type ShipmentMessagePaginator {
-	"""
-	Pagination information about the list of items.
-	"""
-	paginatorInfo: PaginatorInfo!
-
-	"""
-	A list of ShipmentMessage items.
-	"""
-	data: [ShipmentMessage!]!
-}
-
-type ShipmentMessage {
-	id: Int!
-	body: String
-	hidden: Boolean!
-	images: [Image]
-	shipment: Shipment!
-	user: User!
-	createdAt: DateTime!
 }
 
 type Image {
@@ -651,110 +83,10 @@ type Image {
 	subjectCode: String
 }
 
-"""
-A paginated list of Notification items.
-"""
-type NotificationPaginator {
-	"""
-	Pagination information about the list of items.
-	"""
-	paginatorInfo: PaginatorInfo!
-
-	"""
-	A list of Notification items.
-	"""
-	data: [Notification!]!
-}
-
-type Notification {
-	id: String
-	data: String
-	readAt: Date
-	createdAt: DateTime
-}
-
-type Customer {
-	id: Int!
-	code: String!
-	name: String!
-	email: String
-	warehousing: Boolean!
-	payUncollected: Boolean
-	createdAt: Date
-	createdBy: User
-	postalCode: String
-	mailBox: String
-	sendDeliveryOtp: Boolean
-	active: Boolean!
-	taxable: Boolean!
-	zone: Zone!
-	subzone: Zone!
-	branch: Branch
-	country: Country
-	state: State
-	city: City
-	area: Area
-	address: String
-	paymentMethod: LookupEntry
-	defaultShipmentType: LookupEntry
-	defaultPriceType: LookupEntry
-	defaultOpenable: LookupEntry
-	category: LookupEntry
-	type: LookupEntry
-	phone: String
-	mobile: String
-	vodafoneCash: String
-	bankAccount: String
-	representative: String
-	activityName: String
-	callbackUrl: String
-	specifyShipmentCode: Boolean!
-	shareCollectedFees: Boolean!
-	latitude: Float
-	longitude: Float
-	paymentDue: Float!
-	idNumber: String
-	idType: String
-	idIssueDate: Date
-	idExpiryDate: Date
-	taxCardNumber: String
-	registrationNumber: String
-	registrationDate: Date
-	identificationType: LookupEntry
-	paymentTypes: [LookupEntry]
-	users: [User]
-	paymentCycle: LookupEntry
-	paymentCycleDays: [Int]
-	hideMobileFrom: [LookupEntry]
-}
-
 input ListShippingServicesFilterInput {
 	customerTypeCode: CustomerTypeCode
 	customerId: Int
 	active: Boolean
-}
-
-input ListPaymentTypesDropdownInput {
-	customerId: Int
-}
-
-type ShipmentForPickup {
-	shipment: Shipment!
-}
-
-"""
-A paginated list of ShipmentForPickup items.
-"""
-type ShipmentForPickupPaginator {
-	"""
-	Pagination information about the list of items.
-	"""
-	paginatorInfo: PaginatorInfo!
-
-	"""
-	A list of ShipmentForPickup items.
-	"""
-	data: [ShipmentForPickup!]!
 }
 
 """
@@ -802,154 +134,12 @@ type PaginatorInfo {
 	total: Int!
 }
 
-"""
-A paginated list of Pickup items.
-"""
-type PickupPaginator {
-	"""
-	Pagination information about the list of items.
-	"""
-	paginatorInfo: PaginatorInfo!
-
-	"""
-	A list of Pickup items.
-	"""
-	data: [Pickup!]!
-}
-
-input ListPickupsFilterInput {
-	code: String
-	statusCode: PickupStatusCode
-	deliveryAgentId: Int
-	customerId: Int
-	branchId: Int
-	fromDate: Date
-	toDate: Date
-	forPaymentId: Int
-	acceptanceCode: [PickupAcceptanceCode]
-	new: Boolean
-}
-
-"""
-Pickup acceptance code
-"""
-enum PickupAcceptanceCode {
-	"""
-	Accepted
-	"""
-	ACCEPTED
-
-	"""
-	Pending
-	"""
-	PENDING
-
-	"""
-	Rejected
-	"""
-	REJECTED
-}
-
-"""
-Pickup status code
-"""
-enum PickupStatusCode {
-	"""
-	New
-	"""
-	NEW
-
-	"""
-	Wrk
-	"""
-	WRK
-
-	"""
-	Cxl
-	"""
-	CXL
-
-	"""
-	Pkd
-	"""
-	PKD
-
-	"""
-	Don
-	"""
-	DON
-}
-
-type Pickup {
-	id: Int!
-	code: String!
-	date: DateTime!
-	timeFrom: Time
-	timeTo: Time
-	notes: String
-	deliveryAgentNotes: String
-	shipmentsCount: Int
-	pickedCount: Int
-	editable: Boolean!
-	deletable: Boolean!
-	acceptance: LookupEntry!
-	paidToDeliveryAgent: Boolean!
-	createdAt: DateTime
-	status: LookupEntry!
-	vehicle: LookupEntry
-	branch: Branch!
-	customer: Customer!
-	transactionType: TransactionType!
-	createdBy: User!
-	updatedBy: User
-	deliveryCommission: Float!
-	payment: Payment
-	commissionAmountEditable: Boolean!
-}
-
-input PickupInput {
-	id: Int
-	code: String
-	date: DateTime
-	timeFrom: Time
-	timeTo: Time
-	shipmentsCount: Int
-	notes: String
-	branchId: Int
-	customerId: Int
-	transactionTypeId: Int
-	deliveryAgentId: Int
-}
-
-input UpdateShipmentStatusInput {
-	id: Int!
-	remoteShipmentId: Int
-	statusCode: ShipmentStatusCode!
-	deliveryTypeCode: ShipmentDeliveryTypeCode
-	fees: Float
-	deliveredAmount: Float
-	deliveredProducts: [DeliveredProduct]
-	cancellationReasonId: Int
-	returnTypeCode: ShipmentReturnTypeCode
-	notes: String
-	deliveryOtp: String
-	latitude: Float
-	longitude: Float
-	deliveryDate: Date
-	images: [ImageInput]
-}
-
 input ImageInput {
-  """
-  file Uploaded
-  """
+	"""
+	file Uploaded
+	"""
 	# file: Upload!
 	subjectCode: String
-}
-
-input DeliveredProduct {
-	id: Int!
-	quantity: Int!
 }
 
 """
@@ -1371,11 +561,6 @@ input ShipmentInput {
 	code: String
 	date: DateTime
 	deliveryDate: Date
-	serviceId: Int!
-	customerId: Int
-	transactionTypeId: Int
-	originBranchId: Int
-	branchId: Int
 	description: String
 	refNumber: String
 	weight: Float
@@ -1384,13 +569,11 @@ input ShipmentInput {
 	returnPiecesCount: Int
 	price: Float
 	notes: String
-	receiveInWarehouse: Boolean
 	typeCode: ShipmentTypeCode
 	priceTypeCode: ShipmentPriceTypeCode
 	paymentTypeCode: ShipmentPaymentTypeCode
 	openableCode: ShipmentOpenableCode
 	shipmentProducts: [ShipmentProductInput]
-	deliveryCommission: Float
 
 	senderName: String
 	senderZoneId: Int
@@ -1408,14 +591,8 @@ input ShipmentInput {
 	recipientPhone: String!
 	recipientMobile: String!
 	recipientAddress: String!
-	recipientPostalCode: String
 	recipientLatitude: Float
 	recipientLongitude: Float
-
-	deliveryFees: Float
-	extraWeightFees: Float
-	collectionFees: Float
-	returnFees: Float
 }
 
 input ShipmentProductInput {
@@ -1622,50 +799,6 @@ enum CustomerTypeCode {
 	CONCIERGE
 }
 
-type CommissionList {
-  id: Int!
-  code: String!
-  name: String!
-  description: String
-  active: Boolean!
-  destinations: [CommissionListDestination]
-}
-
-type CommissionListDestination {
-  id: Int!
-  zone: Zone!
-  subzone: Zone
-  commissionType: LookupEntry!
-  commission: Float!
-  active: Boolean!
-}
-
-type DeliveryAgent {
-  id: Int!
-  code: String!
-  name: String!
-  commission: Float
-  reviewAvg: Float
-  reviewCount: Int!
-  address: String
-  postalCode: String
-  mailBox: String
-  pickupCommission: Boolean
-  active: Boolean!
-  phone: String
-  mobile: String
-  email: String
-  autoPayCommission: Boolean
-  country: Country
-  state: State
-  city: City
-  area: Area
-  branch: Branch
-  commissionList: CommissionList
-  commissionType: LookupEntry
-  paidCommission: Float!
-  notPaidCommission: Float!
-  collectionDueAmount: Float! 
-  commissionDueAmount: Float! 
-  users: [User]
+input ListLookupEntriesFilterInput {
+	code: String!
 }
